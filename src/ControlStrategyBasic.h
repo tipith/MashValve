@@ -6,22 +6,17 @@
 class ControlStrategyBasic : public IControlStrategy
 {
 public:
-    ControlStrategyBasic()
+    ControlStrategyBasic(long positions) : poscount(positions)
     {
-
     }
 
-    unsigned long control(bool cw)
+    long control(long process_pos, long setpoint)
     {
-
+        long err = setpoint - process_pos;
+        err = constrain(err, -poscount, poscount);
+        return map(err, -poscount, poscount, -250, 250);
     }
-
-    int get_error(int current, int setpoint)
-    {
-        return setpoint - current;
-    }
-
 
 private:
-
+    long poscount;
 };

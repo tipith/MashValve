@@ -9,7 +9,7 @@
 class InputSourcePWM : public IInputSource 
 {
 public:
-    InputSourcePWM(uint8_t pin) : _pin(pin), _pulse_high(0), _pulse_low(0)
+    InputSourcePWM(uint8_t pin, unsigned long positions) : _positions(positions), _pin(pin), _pulse_high(0), _pulse_low(0)
     {
         _last_received = 0;
         pinMode(_pin, INPUT);
@@ -28,9 +28,9 @@ public:
         }
     }
 
-    unsigned int setpoint(unsigned int current_setpoint)
+    long setpoint(long current_setpoint)
     {
-        return map(duty_cycle(), 0, 1000, 0, 255);
+        return map(duty_cycle(), 0, 1000, -_positions, _positions);
     }
 
     uint32_t inline period(void)
@@ -50,6 +50,7 @@ public:
     }
 
 private:
+    unsigned long _positions;
     uint8_t _pin;
     uint32_t _pulse_low;
     uint32_t _pulse_high;

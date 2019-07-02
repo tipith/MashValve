@@ -3,6 +3,8 @@
 class IControlStrategy
 {
 public:
-    virtual unsigned long control(bool cw) = 0;
-    virtual int get_error(int current, int setpoint) = 0;
+    /*
+     Returns a value between -250 .. 250
+     */
+    virtual long control(long process_pos, long setpoint) = 0;
 };

@@ -6,14 +6,14 @@
 class MotorEncoder : public IEncoder
 {
 public:
-    MotorEncoder(uint8_t pina, uint8_t pinb)
+    MotorEncoder(uint8_t pina, uint8_t pinb, long pulses_per_rev) : _pulses_per_rev(pulses_per_rev)
     {
         _encoder = new Encoder(pina, pinb);
     }
 
     long position(void)
     {
-        return _encoder->read();
+        return _encoder->read() / _pulses_per_rev;
     }
 
     void reset(void)
@@ -23,4 +23,5 @@ public:
 
 private:
     Encoder* _encoder;
+    long _pulses_per_rev;
 };

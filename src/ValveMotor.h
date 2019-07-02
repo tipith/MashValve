@@ -48,7 +48,11 @@ public:
     {
         _input_prio.monitor();
         _input.monitor();
-        test_ramp();
+
+        long control = _control_input();
+        _hbridge.set_dc(control);
+        
+        //test_ramp();
     }
 
     void print_state(void)
@@ -73,17 +77,17 @@ public:
         snprintf(text, sizeof(text) - 1, "driver:  dutycycle=%i\n", _hbridge.get_dc());
         Serial.print(text);
 
-        snprintf(text, sizeof(text) - 1, "control: error=%i\n", _get_error());
+        snprintf(text, sizeof(text) - 1, "control: control=%li\n", _control_input());
         Serial.print(text);
     }
 
 private:
 
-    int _get_error(void)
+    long _control_input(void)
     {
         if (_input.has_setpoint())
         {
-            return _control.get_error(_encoder.position(), _input.setpoint(0));
+            return _control.control(_encoder.position(), _input.setpoint(0));
         }
 
         return 0;

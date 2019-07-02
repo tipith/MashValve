@@ -4,7 +4,7 @@ class IInputSource
 {
 public:
     virtual void monitor(void) = 0;
-    virtual unsigned int setpoint(unsigned int current_setpoint) = 0;
+    virtual long setpoint(long current_setpoint) = 0;
 
     unsigned long millis_since_latest(void)
     {

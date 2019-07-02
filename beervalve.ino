@@ -14,6 +14,9 @@
 #define PIN_BUTTON_OPEN 5
 #define PIN_BUTTON_CLOSE 6
 
+#define PULSER_PER_REV 5
+#define POSITIONS_NUM 1024
+
 bool ledState = true;
 ValveMotor* motor;
 
@@ -23,10 +26,10 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
 
   MotorDriverMX1508 driver(PIN_MOTOR_A, PIN_MOTOR_B);
-  MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B);
-  InputSourceManual input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN);
-  InputSourcePWM input2(PIN_INPUT_PWM);
-  ControlStrategyBasic controller;
+  MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B, PULSER_PER_REV);
+  InputSourceManual input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN, POSITIONS_NUM);
+  InputSourcePWM input2(PIN_INPUT_PWM, POSITIONS_NUM);
+  ControlStrategyBasic controller(POSITIONS_NUM);
 
   motor = &ValveMotorBuilder()
               .withDriver(driver)
