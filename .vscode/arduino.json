@@ -2,5 +2,5 @@
     "programmer": "AVRISP mkII",
     "board": "arduino:avr:uno",
     "port": "COM6",
-    "sketch": "testsketch.ino"
+    "sketch": "beervalve.ino"
 }

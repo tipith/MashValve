@@ -1,57 +1,48 @@
-#include <Encoder.h> /* https://github.com/PaulStoffregen/Encoder */
-#include <MX1508.h> /* https://github.com/Saeterncj/MX1508 */
-#include "motor.h"
+#include "src/ValveMotor.h"
+#include "src/ValveMotorBuilder.h"
+#include "src/InputSourceManual.h"
+#include "src/InputSourcePWM.h"
+#include "src/MotorDriverMX1508.h"
+#include "src/MotorEncoder.h"
+#include "src/ControlStrategyBasic.h"
 
-#define PIN_HALL_A    2
-#define PIN_HALL_B    3
-#define PIN_MOTOR_A   9
-#define PIN_MOTOR_B   10
-
+#define PIN_MOTOR_A 9
+#define PIN_MOTOR_B 10
+#define PIN_HALL_A 2
+#define PIN_HALL_B 3
+#define PIN_INPUT_PWM 4
+#define PIN_BUTTON_OPEN 5
+#define PIN_BUTTON_CLOSE 6
 
 bool ledState = true;
-
-Encoder tacho(PIN_HALL_A, PIN_HALL_B);
-MX1508 motor(PIN_MOTOR_A, PIN_MOTOR_B, FAST_DECAY, PWM_2PIN);
+ValveMotor* motor;
 
 void setup()
 {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, ledState);
 
-  /* Drive motor until limit switch triggers */
+  MotorDriverMX1508 driver(PIN_MOTOR_A, PIN_MOTOR_B);
+  MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B);
+  InputSourceManual input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN);
+  InputSourcePWM input2(PIN_INPUT_PWM);
+  ControlStrategyBasic controller;
 
-  /* Set known position */
-  tacho.write(0);
+  motor = &ValveMotorBuilder()
+              .withDriver(driver)
+              .withEncoder(encoder)
+              .usingInput(input1, PRIO_HIGH)
+              .usingInput(input2, PRIO_LOW)
+              .withController(controller)
+              .build();
+  motor->calibrate();
 }
 
 void loop()
 {
   ledState = !ledState;
   digitalWrite(LED_BUILTIN, ledState);
+  motor->do_work();
+  motor->print_state();
   delay(100);
-
-  char text[64];
-
-  static unsigned long next_run = 0;
-  static bool cwDirection = true;
-  static int pwm = 1;
-
-  if (next_run < millis())
-  {
-    if (cwDirection && pwm++ > 100 )
-    {
-      cwDirection = false;
-    }
-    else if (!cwDirection && pwm-- < -100)
-    {
-      cwDirection =  true;
-    }
-
-    motor.motorGo(pwm);
-    next_run = millis() + 50;
-  }
-
-  sprintf(text, "led %u, encoder %u, motor %i %i\n", ledState, tacho.read(), pwm, motor.getPWM());
-  Serial.print(text);
 }
