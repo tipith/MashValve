@@ -4,6 +4,7 @@
 #include "../interface/IMotorDriver.h"
 #include "../interface/IInputSource.h"
 #include "../interface/IControlStrategy.h"
+#include "../interface/ILimitSwitch.h"
 #include "ValveMotor.h"
 
 enum InputPriority
@@ -54,13 +55,20 @@ public:
         return *this;
     }
 
+    ValveMotorBuilder &withLimitSwitch(ILimitSwitch &limit)
+    {
+        _limit = &limit;
+        return *this;
+    }
+
     ValveMotor &build(void)
     {
         ValveMotor *motor = new ValveMotor(*_encoder,
                                            *_driver, 
                                            *_input_prio_high, 
                                            *_input_prio_low,
-                                           *_controller);
+                                           *_controller,
+                                           *_limit);
         return *motor;
     }
 
@@ -70,4 +78,5 @@ private:
     IInputSource *_input_prio_high;
     IInputSource *_input_prio_low;
     IControlStrategy *_controller;
+    ILimitSwitch *_limit;
 };

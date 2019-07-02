@@ -6,17 +6,22 @@
 #include "../interface/IMotorDriver.h"
 #include "../interface/IInputSource.h"
 #include "../interface/IControlStrategy.h"
+#include "../interface/ILimitSwitch.h"
 
 class ValveMotor
 {
 public:
-    ValveMotor(IEncoder &encoder, IMotorDriver &hbridge, IInputSource &input_prio, IInputSource &input, IControlStrategy &control) : _encoder(encoder), _hbridge(hbridge), _input_prio(input_prio), _input(input), _control(control)
+    ValveMotor(IEncoder &encoder, IMotorDriver &hbridge, IInputSource &input_prio, IInputSource &input, IControlStrategy &control, ILimitSwitch &limit) : _encoder(encoder), _hbridge(hbridge), _input_prio(input_prio), _input(input), _control(control), _limit(limit)
     {
+        pinMode(LED_BUILTIN, OUTPUT);
     }
 
     void calibrate(void)
     {
         /* Drive motor until limit switch triggers */
+        _hbridge.set_dc(-100);
+        while (!_limit.set());
+        _hbridge.set_dc(0);
 
         /* Set known position */
         _encoder.reset();
@@ -52,6 +57,9 @@ public:
         _input_prio.monitor(irange);
         _input.monitor(irange);
         _hbridge.set_dc(_calculate_control());
+
+        ledState = !ledState;
+        digitalWrite(LED_BUILTIN, ledState);
     }
 
     void print_state(void)
@@ -111,4 +119,6 @@ private:
     IInputSource &_input_prio;
     IInputSource &_input;
     IControlStrategy &_control;
+    ILimitSwitch &_limit;
+    bool ledState = true;
 };
