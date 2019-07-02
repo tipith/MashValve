@@ -19,7 +19,7 @@ static void on_open_button_pressed(void)
 class InputSourceManual : public IInputSource
 {
 public:
-    InputSourceManual(uint8_t pin_close, uint8_t pin_open, unsigned long positions) : _positions(positions), _old_diff(0), _pin_open(pin_close), _pin_close(pin_open)
+    InputSourceManual(uint8_t pin_close, uint8_t pin_open) : _setpoint(0), _old_diff(0), _pin_open(pin_close), _pin_close(pin_open)
     {
         diff = 0;
         _last_received = 0;
@@ -30,22 +30,28 @@ public:
         attachInterrupt(digitalPinToInterrupt(pin_open), on_open_button_pressed, FALLING);
     }
 
-    void monitor(void)
+    void monitor(InputRange& range)
     {
         if (_old_diff != diff)
         {
             _old_diff = diff;
             _last_received = millis();
+            _setpoint = constrain(_old_diff, -range.to_min, range.to_max);
         }
     }
 
-    long setpoint(long current_setpoint)
+    long setpoint(void)
     {
-        return diff + current_setpoint;
+        return _setpoint;
+    }
+
+    const char* type(void)
+    {
+        return "manual";
     }
 
 private:
-    unsigned long _positions;
+    long _setpoint;
     int _old_diff;
     uint8_t _pin_close;
     uint8_t _pin_open;

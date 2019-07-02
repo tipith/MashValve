@@ -1,6 +1,7 @@
 #include "src/ValveMotor.h"
 #include "src/ValveMotorBuilder.h"
 #include "src/InputSourceManual.h"
+#include "src/InputSourceManualPoller.h"
 #include "src/InputSourcePWM.h"
 #include "src/MotorDriverMX1508.h"
 #include "src/MotorEncoder.h"
@@ -16,20 +17,21 @@
 
 #define PULSER_PER_REV 5
 #define POSITIONS_NUM 1024
+#define MANUAL_CONTROL_ACTIVE_FOR_MS 30*1000
 
 bool ledState = true;
 ValveMotor* motor;
+MotorDriverMX1508 driver(PIN_MOTOR_A, PIN_MOTOR_B);
+MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B, PULSER_PER_REV);
+InputSourceManualPoller input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN, MANUAL_CONTROL_ACTIVE_FOR_MS);
+InputSourcePWM input2(PIN_INPUT_PWM);
+ControlStrategyBasic controller(POSITIONS_NUM);
+
 
 void setup()
 {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
-
-  MotorDriverMX1508 driver(PIN_MOTOR_A, PIN_MOTOR_B);
-  MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B, PULSER_PER_REV);
-  InputSourceManual input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN, POSITIONS_NUM);
-  InputSourcePWM input2(PIN_INPUT_PWM, POSITIONS_NUM);
-  ControlStrategyBasic controller(POSITIONS_NUM);
 
   motor = &ValveMotorBuilder()
               .withDriver(driver)

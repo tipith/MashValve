@@ -46,13 +46,12 @@ public:
 
     void do_work(void)
     {
-        _input_prio.monitor();
-        _input.monitor();
-
-        long control = _control_input();
-        _hbridge.set_dc(control);
-        
-        //test_ramp();
+        IControlStrategy::ControlRange crange = _control.range();
+        long pos = _encoder.position();
+        IInputSource::InputRange irange = {crange.min, crange.max, pos, crange.max - pos};
+        _input_prio.monitor(irange);
+        _input.monitor(irange);
+        _hbridge.set_dc(_calculate_control());
     }
 
     void print_state(void)
@@ -60,15 +59,14 @@ public:
         static char text[128] = {0};
 
         Serial.println("-----------------------------------");
-
-        snprintf(text, sizeof(text) - 1, "input1:  age=%lu ms set=%u\n",
-                 _input_prio.millis_since_latest(), 
-                 _input_prio.has_setpoint() ? _input_prio.setpoint(0) : -1);
+        snprintf(text, sizeof(text) - 1, "input1:  age=%lu ms set=%i\n",
+                 _input_prio.millis_since_latest(),
+                 _input_prio.has_setpoint() ? _input_prio.setpoint() : -1);
         Serial.print(text);
 
-        snprintf(text, sizeof(text) - 1, "input2:  age=%lu ms set=%u\n",
+        snprintf(text, sizeof(text) - 1, "input2:  age=%lu ms set=%i\n",
                  _input.millis_since_latest(),
-                 _input.has_setpoint() ? _input.setpoint(0) : -1);
+                 _input.has_setpoint() ? _input.setpoint() : -1);
         Serial.print(text);
 
         snprintf(text, sizeof(text) - 1, "tacho:   pos=%li\n", _encoder.position());
@@ -77,20 +75,35 @@ public:
         snprintf(text, sizeof(text) - 1, "driver:  dutycycle=%i\n", _hbridge.get_dc());
         Serial.print(text);
 
-        snprintf(text, sizeof(text) - 1, "control: control=%li\n", _control_input());
+        IInputSource *in = _get_input_source();
+        snprintf(text, sizeof(text) - 1, "control: control=%li src=%s\n",
+                 _calculate_control(), in ? in->type() : "none");
         Serial.print(text);
     }
 
 private:
-
-    long _control_input(void)
+    IInputSource *_get_input_source(void)
     {
-        if (_input.has_setpoint())
-        {
-            return _control.control(_encoder.position(), _input.setpoint(0));
-        }
 
-        return 0;
+        if (_input_prio.has_setpoint())
+        {
+            return &_input_prio;
+        }
+        else if (_input.has_setpoint())
+        {
+            return &_input;
+        }
+        return nullptr;
+    }
+
+    long _calculate_control(void)
+    {
+        IInputSource *in = _get_input_source();
+
+        /* stay put if no input has been received */
+        long setpoint = in ? in->setpoint() : _encoder.position();
+
+        return _control.control(_encoder.position(), setpoint);
     }
 
     IEncoder &_encoder;

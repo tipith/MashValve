@@ -17,6 +17,12 @@ public:
         return map(err, -poscount, poscount, -250, 250);
     }
 
+    ControlRange range(void)
+    {
+        ControlRange range = {0, poscount};
+        return range;
+    }
+
 private:
     long poscount;
 };
