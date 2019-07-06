@@ -13,5 +13,6 @@ Arduino control for a mash valve
 # Dependencies
 - https://github.com/PaulStoffregen/Encoder
 - https://github.com/Saeterncj/MX1508
+- https://github.com/br3ttb/Arduino-PID-Library
  
 Download master as a zip and Sketch -> Include Library -> Add .ZIP Library

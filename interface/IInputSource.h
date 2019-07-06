@@ -8,6 +8,7 @@ public:
         long max;
         long to_max;
         long to_min;
+        long pos;
     } InputRange;
 
     virtual void monitor(InputRange& range) = 0;

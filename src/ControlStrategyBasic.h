@@ -6,23 +6,15 @@
 class ControlStrategyBasic : public IControlStrategy
 {
 public:
-    ControlStrategyBasic(long positions) : poscount(positions)
+    ControlStrategyBasic(long positions)
     {
+        _poscount = positions;
     }
 
     long control(long process_pos, long setpoint)
     {
         long err = setpoint - process_pos;
-        err = constrain(err, -poscount, poscount);
-        return map(err, -poscount, poscount, -250, 250);
+        err = constrain(err, -_poscount, _poscount);
+        return map(err, -_poscount, _poscount, -250, 250);
     }
-
-    ControlRange range(void)
-    {
-        ControlRange range = {0, poscount};
-        return range;
-    }
-
-private:
-    long poscount;
 };

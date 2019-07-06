@@ -6,7 +6,7 @@
 class InputSourceManualPoller : public IInputSource
 {
 public:
-    InputSourceManualPoller(uint8_t pin_close, uint8_t pin_open, unsigned long active_for_ms) : _diff(0), _pin_open(pin_close), _pin_close(pin_open)
+    InputSourceManualPoller(uint8_t pin_close, uint8_t pin_open, unsigned long active_for_ms) : _setpoint(0), _pin_open(pin_close), _pin_close(pin_open)
     {
         _active_for_ms = active_for_ms;
         _last_received = 0;
@@ -20,25 +20,25 @@ public:
         int button_open = digitalRead(_pin_open);
         if (button_close == LOW || button_open == LOW)
         {
-            if (!has_setpoint())
+            if (has_setpoint() == false)
+            {
                 _latched_range = range;
+                _setpoint = _latched_range.pos;
+            }
             _last_received = millis();
-            _diff += 10 * ((button_open == LOW) - (button_close == LOW));
-            _diff = constrain(_diff, -_latched_range.to_min, _latched_range.to_max);
+            _setpoint += 100 * ((button_open == LOW) - (button_close == LOW));
+            _setpoint = constrain(_setpoint, -_latched_range.min, _latched_range.max);
         }
     }
 
     long setpoint(void)
     {
-        return _diff;    
+        return _setpoint;    
     }
 
     bool has_setpoint(void) override
     {
-        bool active = (_last_received != 0) && (millis_since_latest() < _active_for_ms);
-        if (!active)
-            _diff = 0;
-        return active;
+        return (_last_received != 0) && (millis_since_latest() < _active_for_ms);
     }
 
     const char* type(void)
@@ -48,7 +48,7 @@ public:
 
 private:
     unsigned long _active_for_ms;
-    int _diff;
+    int _setpoint;
     uint8_t _pin_close;
     uint8_t _pin_open;
     InputRange _latched_range;

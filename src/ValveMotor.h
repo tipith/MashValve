@@ -27,33 +27,11 @@ public:
         _encoder.reset();
     }
 
-    void test_ramp()
-    {
-        static unsigned long next_run = 0;
-        static bool cwDirection = true;
-        static int pwm = 1;
-
-        if (next_run < millis())
-        {
-            if (cwDirection && pwm++ > 100)
-            {
-                cwDirection = false;
-            }
-            else if (!cwDirection && pwm-- < -100)
-            {
-                cwDirection = true;
-            }
-
-            _hbridge.set_dc(pwm);
-            next_run = millis() + 50;
-        }
-    }
-
     void do_work(void)
     {
         IControlStrategy::ControlRange crange = _control.range();
         long pos = _encoder.position();
-        IInputSource::InputRange irange = {crange.min, crange.max, pos, crange.max - pos};
+        IInputSource::InputRange irange = {crange.min, crange.max, pos, crange.max - pos, pos};
         _input_prio.monitor(irange);
         _input.monitor(irange);
         _hbridge.set_dc(_calculate_control());

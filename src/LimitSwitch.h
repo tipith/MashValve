@@ -7,12 +7,12 @@ class LimitSwitch : public ILimitSwitch
 public:
     LimitSwitch(uint8_t pin, long initial_timeout = -1) : _pin(pin), _initial_timeout(initial_timeout)
     {
-        pinMode(pin, INPUT_PULLUP);
+        pinMode(_pin, INPUT_PULLUP);
     }
 
     boolean set(void)
-    {   
-        return millis() > _initial_timeout;
+    {
+        return millis() > _initial_timeout || digitalRead(_pin) == LOW;
     }
 
 private:

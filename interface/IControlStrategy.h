@@ -13,5 +13,12 @@ public:
      */
     virtual long control(long process_pos, long setpoint) = 0;
 
-    virtual ControlRange range(void) = 0;
+    virtual ControlRange range(void)
+    {
+        ControlRange range = {0, _poscount};
+        return range;
+    }
+
+protected:
+    long _poscount;
 };
