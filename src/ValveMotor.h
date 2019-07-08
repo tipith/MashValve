@@ -19,7 +19,7 @@ public:
     void calibrate(void)
     {
         /* Drive motor until limit switch triggers */
-        _hbridge.set_dc(-100);
+        _hbridge.set_dc(-255);
         while (!_limit.set());
         _hbridge.set_dc(0);
 

@@ -3,6 +3,8 @@
 #include <Encoder.h> /* https://github.com/PaulStoffregen/Encoder */
 #include "../interface/IEncoder.h"
 
+#define TRANSITIONS_PER_POS 4
+
 class MotorEncoder : public IEncoder
 {
 public:
@@ -13,7 +15,7 @@ public:
 
     long position(void)
     {
-        return _encoder->read() / _pulses_per_rev;
+        return _encoder->read() / TRANSITIONS_PER_POS;
     }
 
     void reset(void)

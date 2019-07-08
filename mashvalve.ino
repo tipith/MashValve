@@ -8,13 +8,6 @@
 #include "src/ControlStrategyPID.h"
 #include "src/LimitSwitch.h"
 
-/* TODO
- *  - pid
- *  - laskukaava enkooderin ja rpm:n välille
- *  - pwm:n testaus
- */
-
-
 #define PIN_MOTOR_A 9
 #define PIN_MOTOR_B 10
 #define PIN_HALL_A 2
@@ -24,8 +17,12 @@
 #define PIN_BUTTON_CLOSE 6
 #define PIN_LIMIT_SWITCH 7
 
-#define PULSES_PER_REV 13
-#define POSITIONS_NUM 10240
+// JGY-371, 40rpm
+#define GEAR_REDUCTION 150
+#define PULSES_PER_REV_PRE 11
+#define PULSES_PER_REV ((long)PULSES_PER_REV_PRE * (long)GEAR_REDUCTION) // after gearbox
+#define FULLSCALE_MM   18  // assuming 1 mm rise on threaded rod
+#define POSITIONS_NUM ((long)PULSES_PER_REV * (long)FULLSCALE_MM)
 #define MANUAL_CONTROL_ACTIVE_FOR_MS 30*1000
 
 ValveMotor* motor;
@@ -34,8 +31,8 @@ MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B, PULSES_PER_REV);
 InputSourceManualPoller input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN, MANUAL_CONTROL_ACTIVE_FOR_MS);
 InputSourcePWM input2(PIN_INPUT_PWM);
 ControlStrategyBasic controller(POSITIONS_NUM);
-ControlStrategyPID controllerpid(1.4, 0.6, 0.3, POSITIONS_NUM);
-LimitSwitch limit(PIN_LIMIT_SWITCH, 3000);
+ControlStrategyPID controllerpid(0.4, 0.1, 0.01, POSITIONS_NUM);
+LimitSwitch limit(PIN_LIMIT_SWITCH, 20000);
 
 void setup()
 {
