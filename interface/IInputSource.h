@@ -26,5 +26,5 @@ public:
     }
 
 protected:
-    unsigned long _last_received;
+    unsigned long _last_received = 0;
 };

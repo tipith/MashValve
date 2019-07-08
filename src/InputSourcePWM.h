@@ -9,9 +9,8 @@
 class InputSourcePWM : public IInputSource 
 {
 public:
-    InputSourcePWM(uint8_t pin) : _pin(pin), _pulse_high(0), _pulse_low(0), _setpoint(0)
+    InputSourcePWM(uint8_t pin)
     {
-        _last_received = 0;
         pinMode(_pin, INPUT);
     }
 
@@ -56,8 +55,8 @@ public:
     }
 
 private:
-    long _setpoint;
-    uint8_t _pin;
-    uint32_t _pulse_low;
-    uint32_t _pulse_high;
+    long _setpoint = 0;
+    uint8_t _pin = 0;
+    uint32_t _pulse_low = 0;
+    uint32_t _pulse_high = 0;
 };

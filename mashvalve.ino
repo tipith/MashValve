@@ -23,16 +23,15 @@
 #define PULSES_PER_REV ((long)PULSES_PER_REV_PRE * (long)GEAR_REDUCTION) // after gearbox
 #define FULLSCALE_MM   18  // assuming 1 mm rise on threaded rod
 #define POSITIONS_NUM ((long)PULSES_PER_REV * (long)FULLSCALE_MM)
-#define MANUAL_CONTROL_ACTIVE_FOR_MS 30*1000
 
 ValveMotor* motor;
 MotorDriverMX1508 driver(PIN_MOTOR_A, PIN_MOTOR_B);
 MotorEncoder encoder(PIN_HALL_A, PIN_HALL_B, PULSES_PER_REV);
-InputSourceManualPoller input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN, MANUAL_CONTROL_ACTIVE_FOR_MS);
+InputSourceManualPoller input1(PIN_BUTTON_CLOSE, PIN_BUTTON_OPEN);
 InputSourcePWM input2(PIN_INPUT_PWM);
 ControlStrategyBasic controller(POSITIONS_NUM);
 ControlStrategyPID controllerpid(0.4, 0.1, 0.01, POSITIONS_NUM);
-LimitSwitch limit(PIN_LIMIT_SWITCH, 20000);
+LimitSwitch limit(PIN_LIMIT_SWITCH, 200);
 
 void setup()
 {
@@ -40,8 +39,8 @@ void setup()
   motor = &ValveMotorBuilder()
               .withDriver(driver)
               .withEncoder(encoder)
-              .usingInput(input1, PRIO_HIGH)
-              .usingInput(input2, PRIO_LOW)
+              .addInput(input1)
+              .addInput(input2)
               .withController(controllerpid)
               .withLimitSwitch(limit)
               .build();

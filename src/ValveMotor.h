@@ -11,13 +11,20 @@
 class ValveMotor
 {
 public:
-    ValveMotor(IEncoder &encoder, IMotorDriver &hbridge, IInputSource &input_prio, IInputSource &input, IControlStrategy &control, ILimitSwitch &limit) : _encoder(encoder), _hbridge(hbridge), _input_prio(input_prio), _input(input), _control(control), _limit(limit)
+    ValveMotor(IEncoder &encoder, IMotorDriver &hbridge, IInputSource* inputs[], unsigned int input_count, IControlStrategy &control, ILimitSwitch &limit) : _encoder(encoder), _hbridge(hbridge), _control(control), _limit(limit)
     {
+        for (int i = 0; i < (sizeof(_inputs) / sizeof(_inputs[0])); ++i)
+        {
+            _inputs[i] = (i < input_count) ? inputs[i] : nullptr;
+        }
+
         pinMode(LED_BUILTIN, OUTPUT);
     }
 
     void calibrate(void)
     {
+        Serial.println("calibrating");
+
         /* Drive motor until limit switch triggers */
         _hbridge.set_dc(-255);
         while (!_limit.set());
@@ -32,8 +39,15 @@ public:
         IControlStrategy::ControlRange crange = _control.range();
         long pos = _encoder.position();
         IInputSource::InputRange irange = {crange.min, crange.max, pos, crange.max - pos, pos};
-        _input_prio.monitor(irange);
-        _input.monitor(irange);
+
+        for (auto in : _inputs)
+        {
+            if (in) 
+            {
+                in->monitor(irange);
+            }
+        }
+
         _hbridge.set_dc(_calculate_control());
 
         ledState = !ledState;
@@ -45,15 +59,17 @@ public:
         static char text[128] = {0};
 
         Serial.println("-----------------------------------");
-        snprintf(text, sizeof(text) - 1, "input1:  age=%lu ms set=%i\n",
-                 _input_prio.millis_since_latest(),
-                 _input_prio.has_setpoint() ? _input_prio.setpoint() : -1);
-        Serial.print(text);
 
-        snprintf(text, sizeof(text) - 1, "input2:  age=%lu ms set=%i\n",
-                 _input.millis_since_latest(),
-                 _input.has_setpoint() ? _input.setpoint() : -1);
-        Serial.print(text);
+        for (auto in : _inputs)
+        {
+            if (in)
+            {
+                snprintf(text, sizeof(text) - 1, "input %s:  age=%lu ms set=%i\n",
+                        in->type(), in->millis_since_latest(),
+                        in->has_setpoint() ? in->setpoint() : -1);
+                Serial.print(text);
+            }
+        }
 
         snprintf(text, sizeof(text) - 1, "tacho:   pos=%li\n", _encoder.position());
         Serial.print(text);
@@ -61,7 +77,7 @@ public:
         snprintf(text, sizeof(text) - 1, "driver:  dutycycle=%i\n", _hbridge.get_dc());
         Serial.print(text);
 
-        IInputSource *in = _get_input_source();
+        IInputSource* in = _get_input_source();
         snprintf(text, sizeof(text) - 1, "control: control=%li src=%s\n",
                  _calculate_control(), in ? in->type() : "none");
         Serial.print(text);
@@ -70,14 +86,12 @@ public:
 private:
     IInputSource *_get_input_source(void)
     {
-
-        if (_input_prio.has_setpoint())
+        for (auto in : _inputs)
         {
-            return &_input_prio;
-        }
-        else if (_input.has_setpoint())
-        {
-            return &_input;
+            if (in && in->has_setpoint())
+            {
+                return in;
+            }
         }
         return nullptr;
     }
@@ -94,8 +108,7 @@ private:
 
     IEncoder &_encoder;
     IMotorDriver &_hbridge;
-    IInputSource &_input_prio;
-    IInputSource &_input;
+    IInputSource* _inputs[2];
     IControlStrategy &_control;
     ILimitSwitch &_limit;
     bool ledState = true;

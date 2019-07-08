@@ -9,7 +9,7 @@
 class ControlStrategyPID : public IControlStrategy
 {
 public:
-    ControlStrategyPID(double Kp, double Ki, double Kd, long positions) : _setpoint(0), _input(0), _output(0), _Kp(Kp), _Ki(Ki), _Kd(Kd)
+    ControlStrategyPID(double Kp, double Ki, double Kd, long positions)
     {
         _poscount = positions;
         _pid = new PID(&_input, &_output, &_setpoint, _Kp, _Ki, _Kd, DIRECT);
@@ -29,11 +29,11 @@ public:
 private:
     PID* _pid;
 
-    double _setpoint;
-    double _input;
-    double _output;
+    double _setpoint = 0;
+    double _input = 0;
+    double _output = 0;
 
-    double _Kp;
-    double _Ki;
-    double _Kd;
+    double _Kp = 0;
+    double _Ki = 0;
+    double _Kd = 0;
 };

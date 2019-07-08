@@ -7,12 +7,6 @@
 #include "../interface/ILimitSwitch.h"
 #include "ValveMotor.h"
 
-enum InputPriority
-{
-    PRIO_HIGH,
-    PRIO_LOW,
-    PRIO_NUM
-};
 
 class ValveMotorBuilder
 {
@@ -33,19 +27,11 @@ public:
         return *this;
     }
 
-    ValveMotorBuilder &usingInput(IInputSource &input, enum InputPriority prio)
+    ValveMotorBuilder &addInput(IInputSource &input)
     {
-        switch (prio)
-        {
-        case PRIO_HIGH:
-            _input_prio_high = &input;
-            break;
-        case PRIO_LOW:
-            _input_prio_low = &input;
-            break;
-        default:
-            break;
-        }
+        unsigned int count = _count_of_inputs();
+        if (count < (sizeof(_inputs) / sizeof(_inputs[0])))
+            _inputs[count] = &input;
         return *this;
     }
 
@@ -65,18 +51,27 @@ public:
     {
         ValveMotor *motor = new ValveMotor(*_encoder,
                                            *_driver, 
-                                           *_input_prio_high, 
-                                           *_input_prio_low,
+                                           _inputs, 
+                                           _count_of_inputs(),
                                            *_controller,
                                            *_limit);
         return *motor;
     }
 
 private:
+    unsigned int _count_of_inputs(void)
+    {
+        unsigned int count = 0;
+        for (auto in : _inputs)
+        {
+            count += (in != nullptr) ? 1 : 0;
+        }
+        return count;
+    }
+
     IMotorDriver *_driver;
     IEncoder *_encoder;
-    IInputSource *_input_prio_high;
-    IInputSource *_input_prio_low;
+    IInputSource *_inputs[3] = {nullptr};
     IControlStrategy *_controller;
     ILimitSwitch *_limit;
 };

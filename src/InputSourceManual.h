@@ -19,10 +19,9 @@ static void on_open_button_pressed(void)
 class InputSourceManual : public IInputSource
 {
 public:
-    InputSourceManual(uint8_t pin_close, uint8_t pin_open) : _setpoint(0), _old_diff(0), _pin_open(pin_close), _pin_close(pin_open)
+    InputSourceManual(uint8_t pin_close, uint8_t pin_open) : _pin_open(pin_close), _pin_close(pin_open)
     {
         diff = 0;
-        _last_received = 0;
         pinMode(pin_close, INPUT_PULLUP);
         pinMode(pin_open, INPUT_PULLUP);
 
@@ -51,8 +50,8 @@ public:
     }
 
 private:
-    long _setpoint;
-    int _old_diff;
+    long _setpoint = 0;
+    int _old_diff; = 0
     uint8_t _pin_close;
     uint8_t _pin_open;
 };
